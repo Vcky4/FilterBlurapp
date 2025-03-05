@@ -1,7 +1,6 @@
 package com.vicksoson.filterblurapp
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -9,17 +8,18 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var btnSelectImage: Button
-    private lateinit var btnReset: Button
-    private lateinit var filterList: ListView
+    private lateinit var filterList: RecyclerView
     private lateinit var imageView: ImageView
-    private lateinit var seekBar: SeekBar
 
     private var selectedBitmap: Bitmap? = null
     private val filters = mutableListOf<Filter>()
-    private var appliedFilters = mutableListOf<Filter>()
+
+    //    private var appliedFilters = mutableListOf<Filter>()
     private val REQUEST_IMAGE_PICK = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,43 +27,133 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         btnSelectImage = findViewById(R.id.btnSelectImage)
-        btnReset = findViewById(R.id.btnReset)
         filterList = findViewById(R.id.filterList)
         imageView = findViewById(R.id.imageView)
-        seekBar = findViewById(R.id.seekBar)
 
         btnSelectImage.setOnClickListener { selectImage() }
-        btnReset.setOnClickListener { resetImage() }
 
         setupFilters()
-
-        filterList.setOnItemClickListener { _, _, position, _ ->
-            val filter = filters[position]
-            seekBar.progress = (filter.intensity * 100).toInt()
-            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    if (fromUser) {
-                        filter.intensity = progress / 100f
-                        applyFilters()
-                    }
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-            })
-        }
     }
 
     private fun setupFilters() {
-        filters.add(Filter("Contrast", 0f) { bitmap, intensity -> FilterUtils.applyContrast(bitmap, intensity) })
-        filters.add(Filter("Greyscale", 0f) { bitmap, intensity -> FilterUtils.applyGreyscale(bitmap, intensity) })
-        filters.add(Filter("Sepia", 0f) { bitmap, intensity -> FilterUtils.applySepia(bitmap, intensity) })
-        filters.add(Filter("Negative", 0f) { bitmap, intensity -> FilterUtils.applyNegative(bitmap, intensity) })
-        filters.add(Filter("Brightness", 1f) { bitmap, intensity -> FilterUtils.applyBrightness(bitmap, intensity) })
-//        filters.add(Filter("Gaussian Blur", 0f) { bitmap, intensity -> FilterUtils.applyGaussianBlur(this, bitmap, intensity) })
+        filters.add(Filter("Greyscale", FilterType.SWITCH) { bitmap, _, isEnabled, _ ->
+            FilterUtils.applyGreyscale(bitmap, isEnabled)
+        })
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filters.map { it.name })
+        filters.add(Filter("Brightness", FilterType.SLIDER, 1f) { bitmap, intensity, _, _ ->
+            FilterUtils.applyBrightness(bitmap, intensity)
+        })
+
+        filters.add(Filter("Contrast", FilterType.SLIDER, 0f) { bitmap, intensity, _, _ ->
+            FilterUtils.applyContrast(bitmap, intensity)
+        })
+
+        filters.add(Filter("Motion Blur", FilterType.SLIDER, 0f) { bitmap, intensity, _, _ ->
+            FilterUtils.applyMotionBlur(this, bitmap, intensity)
+        })
+
+        filters.add(Filter("Solarize", FilterType.SLIDER, 0f) { bitmap, intensity, _, _ ->
+            FilterUtils.applySolarize(bitmap, intensity)
+        })
+
+//        filters.add(Filter("Color Tint", 0f, FilterType.COLOR_PICKER) { bitmap, _, color ->
+//            FilterUtils.applyColorTint(bitmap, color ?: Color.RED)
+//        })
+        filters.add(
+            Filter(
+                "Sepia",
+                FilterType.SLIDER, 0f
+            ) { bitmap, intensity, _, _ -> FilterUtils.applySepia(bitmap, intensity) })
+        filters.add(
+            Filter(
+                "Negative",
+                FilterType.SWITCH
+            ) { bitmap, _, isEnabled, _ -> FilterUtils.applyNegative(bitmap, isEnabled) })
+        filters.add(
+            Filter(
+                "Gaussian Blur",
+                FilterType.SLIDER, 0f
+            ) { bitmap, intensity, _, _ -> FilterUtils.applyGaussianBlur(this, bitmap, intensity) })
+
+        filters.add(Filter(
+            "Swirl",
+            FilterType.SLIDER, 0f
+        ) { bitmap, intensity, _, _ -> FilterUtils.applySwirlEffect(bitmap, intensity) })
+        filters.add(Filter(
+            "Pixelate",
+            FilterType.SLIDER, 0f
+        ) { bitmap, intensity, _, _ -> FilterUtils.applyPixelate(bitmap, intensity) })
+        filters.add(Filter(
+            "Vignette",
+            FilterType.SLIDER, 0f
+        ) { bitmap, intensity, _, _ -> FilterUtils.applyVignette(bitmap, intensity) })
+//        filters.add(Filter("Solarize", 0f) { bitmap, intensity -> FilterUtils.applySolarize(bitmap, intensity) })
+//
+        filters.add(Filter(
+            "Motion Blur",
+            FilterType.SLIDER, 0f
+        ) { bitmap, intensity, _, _ -> FilterUtils.applyMotionBlur(this, bitmap, intensity) })
+        filters.add(Filter(
+            "Cartoon", FilterType.SWITCH
+        ) { bitmap, _, isEnabled, _ ->
+            FilterUtils.applyCartoonEffect(this, bitmap, isEnabled)
+        })
+
+        filters.add(Filter("Unsharp Mask", FilterType.SLIDER, 0f) { bitmap, intensity, _, _ ->
+            FilterUtils.applyUnsharpMask(this, bitmap, intensity)
+        })
+
+        filters.add(Filter("Box Blur", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyBoxBlur(this, bitmap, intensity)
+        })
+
+        filters.add(Filter("Spin Blur", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applySpinBlur(bitmap, intensity)
+        })
+
+        filters.add(Filter("Zoom Blur", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyZoomBlur(bitmap, intensity)
+        })
+
+        filters.add(Filter("Hue", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyHue(bitmap, intensity)
+        })
+
+        filters.add(Filter("Dither 1x1", FilterType.SWITCH) { bitmap, _, _, _ ->
+            FilterUtils.applyDither(bitmap, 1)
+        })
+
+        filters.add(Filter("Dither 2x2", FilterType.SWITCH) { bitmap, _, _, _ ->
+            FilterUtils.applyDither(bitmap, 2)
+        })
+
+        filters.add(Filter("Dither 3x3", FilterType.SWITCH) { bitmap, _, _, _ ->
+            FilterUtils.applyDither(bitmap, 3)
+        })
+
+        filters.add(Filter("Dither 4x4", FilterType.SWITCH) { bitmap, _, _, _ ->
+            FilterUtils.applyDither(bitmap, 4)
+        })
+
+        filters.add(Filter("Dither Random", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyDitherRandom(bitmap, intensity)
+        })
+
+        filters.add(Filter("Halftone", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyHalftone(bitmap, intensity)
+        })
+
+        filters.add(Filter("Hexagonal Pixelate", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyHexagonalPixelate(bitmap, intensity)
+        })
+
+        val adapter = FilterAdapter(this, filters) {
+            applyFilters()
+        }
+
+        filterList.layoutManager = LinearLayoutManager(this)
         filterList.adapter = adapter
+
     }
 
     private fun selectImage() {
@@ -78,7 +168,7 @@ class MainActivity : AppCompatActivity() {
             imageUri?.let {
                 selectedBitmap = MediaStore.Images.Media.getBitmap(contentResolver, it)
                 imageView.setImageBitmap(selectedBitmap)
-                appliedFilters.clear()
+//                appliedFilters.clear()
             }
         }
     }
@@ -87,7 +177,16 @@ class MainActivity : AppCompatActivity() {
         selectedBitmap?.let { original ->
             var bitmap = original.config?.let { original.copy(it, true) }
             for (filter in filters) {
-                bitmap = bitmap?.let { filter.apply(it, filter.intensity) }
+                if (filter.intensity > 0 || filter.isEnabled || filter.color != null) {
+                    bitmap = bitmap?.let {
+                        filter.apply(
+                            it,
+                            filter.intensity,
+                            filter.isEnabled,
+                            filter.color
+                        )
+                    }
+                }
             }
             imageView.setImageBitmap(bitmap)
         }
@@ -96,11 +195,10 @@ class MainActivity : AppCompatActivity() {
     private fun resetImage() {
         selectedBitmap?.let {
             imageView.setImageBitmap(it)
-            appliedFilters.clear()
+//            appliedFilters.clear()
 
             // Reset intensity of all filters
             filters.forEach { filter -> filter.intensity = 0f }
-            seekBar.progress = 0
         }
     }
 }
