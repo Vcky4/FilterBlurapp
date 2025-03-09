@@ -3,6 +3,7 @@ package com.vicksoson.filterblurapp
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -56,9 +57,9 @@ class MainActivity : AppCompatActivity() {
             FilterUtils.applySolarize(bitmap, intensity)
         })
 
-//        filters.add(Filter("Color Tint", 0f, FilterType.COLOR_PICKER) { bitmap, _, color ->
-//            FilterUtils.applyColorTint(bitmap, color ?: Color.RED)
-//        })
+        filters.add(Filter("Color Tint", FilterType.COLOR_PICKER) { bitmap,_, _, color ->
+            FilterUtils.applyColorTint(bitmap, color ?: Color.RED)
+        })
         filters.add(
             Filter(
                 "Sepia",
@@ -147,6 +148,30 @@ class MainActivity : AppCompatActivity() {
             FilterUtils.applyHexagonalPixelate(bitmap, intensity)
         })
 
+        filters.add(Filter("Smoothness", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applySmoothness(this, bitmap, intensity)
+        })
+
+        filters.add(Filter("Saturation", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applySaturation(bitmap, intensity)
+        })
+
+        filters.add(Filter("Black & White", FilterType.SWITCH) { bitmap, _, isEnabled, _ ->
+            FilterUtils.applyBlackAndWhite(bitmap, isEnabled )
+        })
+
+        filters.add(Filter("Sketch", FilterType.SLIDER) { bitmap,  _, isEnabled, _ ->
+            FilterUtils.applySketch(this, bitmap, isEnabled)
+        })
+
+        filters.add(Filter("Ink Effect", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyInkEffect(bitmap, intensity)
+        })
+
+        filters.add(Filter("Transparency", FilterType.SLIDER) { bitmap, intensity, _, _ ->
+            FilterUtils.applyTransparency(bitmap, intensity)
+        })
+
         val adapter = FilterAdapter(this, filters) {
             applyFilters()
         }
@@ -168,7 +193,6 @@ class MainActivity : AppCompatActivity() {
             imageUri?.let {
                 selectedBitmap = MediaStore.Images.Media.getBitmap(contentResolver, it)
                 imageView.setImageBitmap(selectedBitmap)
-//                appliedFilters.clear()
             }
         }
     }

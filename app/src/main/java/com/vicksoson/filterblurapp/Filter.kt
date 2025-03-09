@@ -11,6 +11,6 @@ data class Filter(
     val type: FilterType,
     var intensity: Float = 0f,
     var isEnabled: Boolean = false,
-    val color: Int? = null,  // Added color input for color filters
+    var color: Int? = null,  // Added color input for color filters
     val apply: (Bitmap, Float, Boolean, Int?) -> Bitmap  // Added color input for color filters
 )
