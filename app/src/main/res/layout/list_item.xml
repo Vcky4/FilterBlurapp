@@ -61,7 +61,7 @@
             <TextView
                 android:id="@+id/colorDisplay"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="20dp"
                 android:background="#FFFFFF" />
 
             <LinearLayout
@@ -71,7 +71,7 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:text="Red"
                     android:textSize="14sp" />
@@ -90,7 +90,7 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:text="Green"
                     android:textSize="14sp" />
@@ -99,7 +99,6 @@
                     android:id="@+id/seekGreen"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:max="255" />
             </LinearLayout>
 
@@ -110,16 +109,15 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
-                    android:text="Green"
+                    android:text="Blue"
                     android:textSize="14sp" />
 
                 <SeekBar
                     android:id="@+id/seekBlue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:max="255" />
             </LinearLayout>
 
