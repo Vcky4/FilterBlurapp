@@ -58,6 +58,10 @@ class FilterAdapter(
         holder.resetBt.setOnClickListener {
             item.intensity = 0f
             item.isEnabled = false
+            item.color = null
+            holder.seekBlue.progress = 0
+            holder.seekRed.progress = 0
+            holder.seekGreen.progress = 0
             holder.switchView.isChecked = false
             holder.seekBar.progress = 0
             notifyItemChanged(position) // Refresh item UI

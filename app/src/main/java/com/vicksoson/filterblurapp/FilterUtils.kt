@@ -13,22 +13,26 @@ object FilterUtils {
     // ✅ GREYSCALE
     fun applyGreyscale(bitmap: Bitmap, isEnabled: Boolean): Bitmap {
         if (!isEnabled) return bitmap
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val matrix = ColorMatrix()
-        matrix.setSaturation(1f - 1f)  // Reduce saturation to greyscale
+        matrix.setSaturation(0f)  // Reduce saturation to greyscale
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        output?.let { Canvas(it) }?.drawBitmap(bitmap, 0f, 0f, paint)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
     // ✅ NEGATIVE
     fun applyNegative(bitmap: Bitmap, isEnabled: Boolean): Bitmap {
         if (!isEnabled) return bitmap
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val matrix = ColorMatrix(
@@ -41,15 +45,17 @@ object FilterUtils {
         )
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        output?.let { Canvas(it) }?.drawBitmap(bitmap, 0f, 0f, paint)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
     // ✅ SEPIA
     fun applySepia(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val matrix = ColorMatrix(
@@ -62,16 +68,17 @@ object FilterUtils {
         )
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        output?.let { Canvas(it) }?.drawBitmap(bitmap, 0f, 0f, paint)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
     // ✅ BRIGHTNESS
     fun applyBrightness(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
-        Log.d("FilterUtils", "applyBrightness: $intensity")
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val brightness = 255 * (intensity - 1f)
@@ -86,15 +93,17 @@ object FilterUtils {
         )
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        output?.let { Canvas(it) }?.drawBitmap(bitmap, 0f, 0f, paint)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
     // ✅ CONTRAST
     fun applyContrast(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val scale = intensity + 1f
@@ -110,20 +119,21 @@ object FilterUtils {
         )
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        output?.let { Canvas(it) }?.drawBitmap(bitmap, 0f, 0f, paint)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
+    // ✅ GAUSSIAN BLUR
     fun applyGaussianBlur(context: Context, bitmap: Bitmap, intensity: Float): Bitmap {
-        if (intensity == 0f) return bitmap  // No effect if intensity = 0
+        if (intensity == 0f) return bitmap
 
         val rs = RenderScript.create(context)
         val input = Allocation.createFromBitmap(rs, bitmap)
         val output = Allocation.createTyped(rs, input.type)
 
         val script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
-        script.setRadius((intensity * 25).coerceIn(0.1f, 25f)) // Prevent crashing
+        script.setRadius((intensity * 25).coerceIn(0.1f, 25f))
         script.setInput(input)
         script.forEach(output)
 
@@ -133,18 +143,16 @@ object FilterUtils {
         return bitmap
     }
 
+    // ✅ MOTION BLUR
     fun applyMotionBlur(context: Context, bitmap: Bitmap, intensity: Float): Bitmap {
-        if (intensity == 0f) return bitmap  // No effect if intensity is 0
+        if (intensity == 0f) return bitmap
 
         val rs = RenderScript.create(context)
-
         val input = Allocation.createFromBitmap(rs, bitmap)
         val output = Allocation.createTyped(rs, input.type)
 
         val script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
-
-        // Set the blur intensity (motion effect)
-        script.setRadius(intensity * 15f)  // Max blur intensity = 15
+        script.setRadius(intensity * 15f)
         script.setInput(input)
         script.forEach(output)
 
@@ -154,7 +162,7 @@ object FilterUtils {
         return bitmap
     }
 
-
+    // ✅ SWIRL EFFECT
     fun applySwirlEffect(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
@@ -192,39 +200,32 @@ object FilterUtils {
         output?.setPixels(pixels, 0, width, 0, 0, width, height)
         return output!!
     }
-
-
+    // ✅ PIXELATE
     fun applyPixelate(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val pixelSize = (intensity * 15).toInt().coerceAtLeast(1)
         val width = bitmap.width
         val height = bitmap.height
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
 
         val paint = Paint()
-        val scaledBitmap =
-            Bitmap.createScaledBitmap(bitmap, width / pixelSize, height / pixelSize, false)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width / pixelSize, height / pixelSize, false)
+        Canvas(output).drawBitmap(Bitmap.createScaledBitmap(scaledBitmap, width, height, false), 0f, 0f, paint)
 
-        output?.let { Canvas(it) }?.drawBitmap(
-            Bitmap.createScaledBitmap(scaledBitmap, width, height, false),
-            0f,
-            0f,
-            paint
-        )
-        return output!!
+        return output
     }
 
-
+    // ✅ VIGNETTE
     fun applyVignette(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val width = bitmap.width
         val height = bitmap.height
-        val radius = (width.coerceAtMost(height.plus(50)) * intensity).toInt()
+        val radius = (width.coerceAtMost(height) * intensity).toInt()
 
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
-        val canvas = output?.let { Canvas(it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint().apply {
             shader = RadialGradient(
                 width / 2f, height / 2f, radius.toFloat(),
@@ -233,32 +234,31 @@ object FilterUtils {
                 Shader.TileMode.CLAMP
             )
         }
-        if (canvas != null) {
-            canvas.drawBitmap(bitmap, 0f, 0f, null)
-            canvas.drawCircle(width / 2f, height / 2f, radius.toFloat(), paint)
-        }
 
-        return output!!
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
+        canvas.drawCircle(width / 2f, height / 2f, radius.toFloat(), paint)
+
+        return output
     }
 
+    // ✅ CARTOON EFFECT
     fun applyCartoonEffect(context: Context, bitmap: Bitmap, isEnabled: Boolean): Bitmap {
         if (!isEnabled) return bitmap
 
         val rs = RenderScript.create(context)
-
         val input = Allocation.createFromBitmap(rs, bitmap)
         val output = Allocation.createTyped(rs, input.type)
 
-        // 1. Edge Detection (softer)
-        val edgeScript = ScriptIntrinsicConvolve3x3.create(rs, Element.U8_4(rs))
         val edgeKernel = floatArrayOf(
-            -2f, -2f, -2f,
-            -2f, 9f, -1f, // Softer edges
-            -1f, 2f, 0f
+            -1f, -1f, -1f,
+            -1f, 9f, -1f,
+            -1f, -1f, -1f
         )
-        edgeScript.setCoefficients(edgeKernel)
-        edgeScript.setInput(input)
-        edgeScript.forEach(output)
+
+        val script = ScriptIntrinsicConvolve3x3.create(rs, Element.U8_4(rs))
+        script.setCoefficients(edgeKernel)
+        script.setInput(input)
+        script.forEach(output)
 
         output.copyTo(bitmap)
         rs.destroy()
@@ -266,13 +266,13 @@ object FilterUtils {
         return bitmap
     }
 
-
+    // ✅ SOLARIZE
     fun applySolarize(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val width = bitmap.width
         val height = bitmap.height
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
 
         val pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
@@ -290,15 +290,15 @@ object FilterUtils {
             if (b > threshold) pixels[i] = Color.rgb(r, g, 255 - b)
         }
 
-        output?.setPixels(pixels, 0, width, 0, 0, width, height)
-        return output!!
+        output.setPixels(pixels, 0, width, 0, 0, width, height)
+        return output
     }
 
+    // ✅ UNSHARP MASK
     fun applyUnsharpMask(context: Context, bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val rs = RenderScript.create(context)
-
         val input = Allocation.createFromBitmap(rs, bitmap)
         val output = Allocation.createTyped(rs, input.type)
 
@@ -319,6 +319,7 @@ object FilterUtils {
         return bitmap
     }
 
+    // ✅ BOX BLUR
     fun applyBoxBlur(context: Context, bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
@@ -340,12 +341,13 @@ object FilterUtils {
         return bitmap
     }
 
+    // ✅ SPIN BLUR
     fun applySpinBlur(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val width = bitmap.width
         val height = bitmap.height
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
 
         val centerX = width / 2
         val centerY = height / 2
@@ -367,21 +369,22 @@ object FilterUtils {
                     val ny = ((dx * sin(angle) + dy * cos(angle)) + centerY).toInt()
 
                     if (nx in 0 until width && ny in 0 until height) {
-                        output?.setPixel(x, y, bitmap.getPixel(nx, ny))
+                        output.setPixel(x, y, bitmap.getPixel(nx, ny))
                     }
                 }
             }
         }
 
-        return output!!
+        return output
     }
 
+    // ✅ ZOOM BLUR
     fun applyZoomBlur(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val width = bitmap.width
         val height = bitmap.height
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
 
         val centerX = width / 2
         val centerY = height / 2
@@ -398,36 +401,37 @@ object FilterUtils {
                 val ny = (centerY + dy * zoomStrength).toInt()
 
                 if (nx in 0 until width && ny in 0 until height) {
-                    output?.setPixel(x, y, bitmap.getPixel(nx, ny))
+                    output.setPixel(x, y, bitmap.getPixel(nx, ny))
                 }
             }
         }
 
-        return output!!
+        return output
     }
 
+    // ✅ HEXAGONAL PIXELATE
     fun applyHexagonalPixelate(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val pixelSize = (intensity * 20).toInt().coerceAtLeast(5)
         val width = bitmap.width
         val height = bitmap.height
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
 
         val paint = Paint()
         val hexBitmap = Bitmap.createScaledBitmap(bitmap, width / pixelSize, height / pixelSize, false)
         val scaledBack = Bitmap.createScaledBitmap(hexBitmap, width, height, false)
 
-        if (output != null) {
-            Canvas(output).drawBitmap(scaledBack, 0f, 0f, paint)
-        }
-        return output!!
+        Canvas(output).drawBitmap(scaledBack, 0f, 0f, paint)
+        return output
     }
 
+    // ✅ HUE
     fun applyHue(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val matrix = ColorMatrix()
@@ -436,15 +440,14 @@ object FilterUtils {
         matrix.setRotate(2, intensity * 180) // Rotate Blue
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        if (output != null) {
-            Canvas(output).drawBitmap(bitmap, 0f, 0f, paint)
-        }
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
+    // ✅ DITHER
     fun applyDither(bitmap: Bitmap, patternSize: Int): Bitmap {
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
@@ -458,16 +461,17 @@ object FilterUtils {
             pixels[i] = ditheredColor
         }
 
-        output?.setPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        return output!!
+        output.setPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        return output
     }
 
+    // ✅ DITHER RANDOM
     fun applyDitherRandom(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val width = bitmap.width
         val height = bitmap.height
-        val output = bitmap.config?.let { Bitmap.createBitmap(width, height, it) }
+        val output = Bitmap.createBitmap(width, height, bitmap.config ?: Bitmap.Config.ARGB_8888)
 
         val pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
@@ -489,10 +493,11 @@ object FilterUtils {
             pixels[i] = Color.rgb(newR, newG, newB)
         }
 
-        output?.setPixels(pixels, 0, width, 0, 0, width, height)
-        return output!!
+        output.setPixels(pixels, 0, width, 0, 0, width, height)
+        return output
     }
 
+    // ✅ HALFTONE
     fun applyHalftone(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
@@ -520,16 +525,16 @@ object FilterUtils {
         return output!!
     }
 
+    // ✅ SMOOTHNESS
     fun applySmoothness(context: Context, bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
         val rs = RenderScript.create(context)
-
         val input = Allocation.createFromBitmap(rs, bitmap)
         val output = Allocation.createTyped(rs, input.type)
 
         val script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
-        script.setRadius((intensity * 25).coerceIn(1f, 25f)) // Ensure valid blur range
+        script.setRadius((intensity * 25).coerceIn(1f, 25f))
 
         script.setInput(input)
         script.forEach(output)
@@ -540,54 +545,58 @@ object FilterUtils {
         return bitmap
     }
 
+    // ✅ SATURATION
     fun applySaturation(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
         val paint = Paint()
 
         val matrix = ColorMatrix()
-        matrix.setSaturation(intensity * 2) // Scale up saturation
+        matrix.setSaturation(intensity * 2)
 
         paint.colorFilter = ColorMatrixColorFilter(matrix)
-        if (output != null) {
-            Canvas(output).drawBitmap(bitmap, 0f, 0f, paint)
-        }
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
 
-        return output!!
+        return output
     }
 
-
+    // ✅ BLACK AND WHITE
     fun applyBlackAndWhite(bitmap: Bitmap, isEnabled: Boolean): Bitmap {
         if (!isEnabled) return bitmap
 
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
         for (i in pixels.indices) {
             val color = pixels[i]
-            val grayscale = (Color.red(color) + Color.green(color) + Color.blue(color)) / 3
-            val bwColor = 128 + if (grayscale > 128) 127 else -128
+            val red = Color.red(color)
+            val green = Color.green(color)
+            val blue = Color.blue(color)
+
+            val grayscale = (0.299 * red + 0.587 * green + 0.114 * blue).toInt()
+            val bwColor = if (grayscale > 128) 255 else 0
 
             pixels[i] = Color.rgb(bwColor, bwColor, bwColor)
         }
 
-        output?.setPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        return output!!
+        output.setPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        return output
     }
 
+    // ✅ SKETCH
     fun applySketch(context: Context, bitmap: Bitmap, isEnabled: Boolean): Bitmap {
         if (!isEnabled) return bitmap
 
         val rs = RenderScript.create(context)
-
         val input = Allocation.createFromBitmap(rs, bitmap)
         val output = Allocation.createTyped(rs, input.type)
 
         val edgeKernel = floatArrayOf(
             -1f, -1f, -1f,
-            -1f,  8f, -1f,
+            -1f, 9f, -1f,
             -1f, -1f, -1f
         )
 
@@ -602,14 +611,15 @@ object FilterUtils {
         return bitmap
     }
 
-    fun applyInkEffect(bitmap: Bitmap, intensity: Float): Bitmap {
-        if (intensity == 0f) return bitmap
+    // ✅ INK EFFECT
+    fun applyInkEffect(bitmap: Bitmap, isEnabled: Boolean): Bitmap {
+        if (!isEnabled) return bitmap
 
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
-        val threshold = (128 + intensity * 50).toInt()
+        val threshold = 128
 
         for (i in pixels.indices) {
             val color = pixels[i]
@@ -617,10 +627,11 @@ object FilterUtils {
             pixels[i] = if (grayscale > threshold) Color.WHITE else Color.BLACK
         }
 
-        output?.setPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        return output!!
+        output.setPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        return output
     }
 
+    // ✅ TRANSPARENCY
     fun applyTransparency(bitmap: Bitmap, intensity: Float): Bitmap {
         if (intensity == 0f) return bitmap
 
@@ -634,17 +645,16 @@ object FilterUtils {
         return output
     }
 
-    fun applyColorTint(bitmap: Bitmap, color: Int): Bitmap {
+    // ✅ COLOR TINT
+    fun applyColorTint(bitmap: Bitmap, color: Int?): Bitmap {
         if (color == null) return bitmap
-        val output = bitmap.config?.let { Bitmap.createBitmap(bitmap.width, bitmap.height, it) }
+
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
         val paint = Paint().apply {
             colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.OVERLAY)
         }
-        if (output != null) {
-            Canvas(output).drawBitmap(bitmap, 0f, 0f, paint)
-        }
-        return output!!
+
+        Canvas(output).drawBitmap(bitmap, 0f, 0f, paint)
+        return output
     }
-
-
 }

@@ -57,8 +57,8 @@ class MainActivity : AppCompatActivity() {
             FilterUtils.applySolarize(bitmap, intensity)
         })
 
-        filters.add(Filter("Color Tint", FilterType.COLOR_PICKER) { bitmap,_, _, color ->
-            FilterUtils.applyColorTint(bitmap, color ?: Color.RED)
+        filters.add(Filter("Color Tint", FilterType.COLOR_PICKER) { bitmap, _, _, color ->
+            FilterUtils.applyColorTint(bitmap, color)
         })
         filters.add(
             Filter(
@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         filters.add(Filter(
             "Swirl",
             FilterType.SLIDER, 0f
-        ) { bitmap, intensity, _, _ -> FilterUtils.applySwirlEffect(bitmap, intensity) })
+        ) { bitmap, intensity, _, _ -> FilterUtils.applySwirlEffect(this, bitmap, intensity) })
         filters.add(Filter(
             "Pixelate",
             FilterType.SLIDER, 0f
@@ -157,15 +157,15 @@ class MainActivity : AppCompatActivity() {
         })
 
         filters.add(Filter("Black & White", FilterType.SWITCH) { bitmap, _, isEnabled, _ ->
-            FilterUtils.applyBlackAndWhite(bitmap, isEnabled )
+            FilterUtils.applyBlackAndWhite(bitmap, isEnabled)
         })
 
-        filters.add(Filter("Sketch", FilterType.SLIDER) { bitmap,  _, isEnabled, _ ->
+        filters.add(Filter("Sketch", FilterType.SWITCH) { bitmap, _, isEnabled, _ ->
             FilterUtils.applySketch(this, bitmap, isEnabled)
         })
 
-        filters.add(Filter("Ink Effect", FilterType.SLIDER) { bitmap, intensity, _, _ ->
-            FilterUtils.applyInkEffect(bitmap, intensity)
+        filters.add(Filter("Ink Effect", FilterType.SWITCH) { bitmap, _, isEnabled, _ ->
+            FilterUtils.applyInkEffect(bitmap, isEnabled)
         })
 
         filters.add(Filter("Transparency", FilterType.SLIDER) { bitmap, intensity, _, _ ->
